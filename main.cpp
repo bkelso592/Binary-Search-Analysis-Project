@@ -1,127 +1,103 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
+#include <chrono>
 
-// Recursive Binary Search
 int recursiveBinarySearch(const std::vector<int>& data, int left, int right, int target) {
     if (left > right) {
         return -1; // Target not found
     }
-
+    
     int mid = left + (right - left) / 2;
-
+    
     if (data[mid] == target) {
         return mid; // Target found
-    }
-    else if (data[mid] > target) {
+    } else if (data[mid] > target) {
         return recursiveBinarySearch(data, left, mid - 1, target);
-    }
-    else {
+    } else {
         return recursiveBinarySearch(data, mid + 1, right, target);
     }
 }
 
-// Iterative Binary Search
 int iterativeBinarySearch(const std::vector<int>& data, int target) {
     int left = 0;
     int right = data.size() - 1;
-
+    
     while (left <= right) {
         int mid = left + (right - left) / 2;
-
+        
         if (data[mid] == target) {
             return mid; // Target found
-        }
-        else if (data[mid] > target) {
+        } else if (data[mid] > target) {
             right = mid - 1;
-        }
-        else {
+        } else {
             left = mid + 1;
         }
     }
-
+    
     return -1; // Target not found
 }
 
-// Sequential Search
 int sequentialSearch(const std::vector<int>& data, int target) {
     for (size_t i = 0; i < data.size(); ++i) {
         if (data[i] == target) {
             return i; // Target found
         }
     }
-
+    
     return -1; // Target not found
 }
 
 int main() {
-    // Initialize vector with test data
-    std::vector<int> data = { 45, 12, 25, 30, 18, 33, 50 };
+    int N = 5000; // Adjust this value for different test cases
+    double SumRBS = 0.0;
+    double SumIBS = 0.0;
+    double SumSeqS = 0.0;
 
-    // Sort the vector for binary search algorithms
-    std::sort(data.begin(), data.end());
+    std::srand(static_cast<unsigned int>(std::time(0)));
 
-    // Define targets
-    int target1 = 25;  // Item that is in the list
-    int target2 = 99;  // Item that is not in the list
+    // Run the test 10 times
+    for (int i = 0; i < 10; ++i) {
+        // Generate a vector with N random numbers between 1 and 100
+        std::vector<int> data;
+        for (int j = 0; j < N; ++j) {
+            data.push_back(1 + std::rand() % 100);
+        }
+        
+        // Sort the vector for binary searches
+        std::sort(data.begin(), data.end());
 
-    // Output vector contents
-    std::cout << "Vector contents: ";
-    for (int item : data) {
-        std::cout << item << " ";
-    }
-    std::cout << "\n";
+        // Generate a random target in the range 1 to 100
+        int target = 1 + std::rand() % 100;
 
-    // Recursive Binary Search
-    int index = recursiveBinarySearch(data, 0, data.size() - 1, target1);
-    if (index != -1) {
-        std::cout << "Target " << target1 << " found at location " << index << " (Recursive Binary Search)\n";
-    }
-    else {
-        std::cout << "Target " << target1 << " was not found, return value is " << index << " (Recursive Binary Search)\n";
-    }
+        // Measure Recursive Binary Search
+        auto start = std::chrono::high_resolution_clock::now();
+        recursiveBinarySearch(data, 0, data.size() - 1, target);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::micro> duration = end - start;
+        SumRBS += static_cast<double>(duration.count());
 
-    index = recursiveBinarySearch(data, 0, data.size() - 1, target2);
-    if (index != -1) {
-        std::cout << "Target " << target2 << " found at location " << index << " (Recursive Binary Search)\n";
-    }
-    else {
-        std::cout << "Target " << target2 << " was not found, return value is " << index << " (Recursive Binary Search)\n";
-    }
+        // Measure Iterative Binary Search
+        start = std::chrono::high_resolution_clock::now();
+        iterativeBinarySearch(data, target);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        SumIBS += static_cast<double>(duration.count());
 
-    // Iterative Binary Search
-    index = iterativeBinarySearch(data, target1);
-    if (index != -1) {
-        std::cout << "Target " << target1 << " found at location " << index << " (Iterative Binary Search)\n";
-    }
-    else {
-        std::cout << "Target " << target1 << " was not found, return value is " << index << " (Iterative Binary Search)\n";
-    }
-
-    index = iterativeBinarySearch(data, target2);
-    if (index != -1) {
-        std::cout << "Target " << target2 << " found at location " << index << " (Iterative Binary Search)\n";
-    }
-    else {
-        std::cout << "Target " << target2 << " was not found, return value is " << index << " (Iterative Binary Search)\n";
+        // Measure Sequential Search
+        start = std::chrono::high_resolution_clock::now();
+        sequentialSearch(data, target);
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+        SumSeqS += static_cast<double>(duration.count());
     }
 
-    // Sequential Search
-    index = sequentialSearch(data, target1);
-    if (index != -1) {
-        std::cout << "Target " << target1 << " found at location " << index << " (Sequential Search)\n";
-    }
-    else {
-        std::cout << "Target " << target1 << " was not found, return value is " << index << " (Sequential Search)\n";
-    }
-
-    index = sequentialSearch(data, target2);
-    if (index != -1) {
-        std::cout << "Target " << target2 << " found at location " << index << " (Sequential Search)\n";
-    }
-    else {
-        std::cout << "Target " << target2 << " was not found, return value is " << index << " (Sequential Search)\n";
-    }
+    // Output average running times
+    std::cout << "Average Running Time for Recursive Binary Search in microseconds is " << SumRBS / 10 << "\n";
+    std::cout << "Average Running Time for Iterative Binary Search in microseconds is " << SumIBS / 10 << "\n";
+    std::cout << "Average Running Time for Sequential Search in microseconds is " << SumSeqS / 10 << "\n";
 
     return 0;
 }
